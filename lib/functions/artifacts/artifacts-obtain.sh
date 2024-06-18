@@ -533,7 +533,7 @@ function is_artifact_available_in_remote_cache() {
 		display_alert "Artifact is not available in remote cache" "${artifact_full_oci_target}" "info"
 		artifact_exists_in_remote_cache="no"
 	fi
-
+	artifact_exists_in_remote_cache="no"
 	return 0
 }
 

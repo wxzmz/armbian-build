@@ -55,7 +55,7 @@ index f7928a7f2..3c4d1e2f2 100644
 -	fdt_rm_path(blob, "/thermal-zones/soc-thermal/cooling-maps/map3");
 -	debug("rm: gpu\n");
 +	/* If one core is bad, disable gpu */
-+	if ((BAD_GPU(mask, 0)) || (BAD_GPU(mask, 1)) || (BAD_GPU(mask, 2)) || (BAD_GPU(mask, 3)))
++	if ((BAD_GPU(mask, 0)) && (BAD_GPU(mask, 1)) && (BAD_GPU(mask, 2)) && (BAD_GPU(mask, 3)))
 +	{
 +		fdt_rm_path(blob, "/gpu@fb000000");
 +		fdt_rm_path(blob, "/thermal-zones/soc-thermal/cooling-maps/map3");
