@@ -1,0 +1,21 @@
+# Armbian led state save and restore
+# Stores the current led state at shutdown and restores
+# it during bootstrap
+
+[Unit]
+Description=Armbian leds state
+After=timers.target
+Conflicts=shutdown.target
+DefaultDependencies=no
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStartPre=/usr/sbin/modprobe openvfd
+ExecStart=/usr/bin/OpenVFDService &
+ExecReload=/usr/bin/OpenVFDService &  
+
+
+[Install]
+WantedBy=basic.target
+

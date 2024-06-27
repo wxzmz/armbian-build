@@ -1,13 +1,84 @@
 # Rockchip RK3566 quad core 8GB RAM SoC WIFI/BT eMMC USB2/3 SATA
-BOARD_NAME="JP-TVbox-3566"
+BOARD_NAME="jp-tvbox-3566"
 BOARDFAMILY="rk35xx"
-BOARD_MAINTAINER="tdleiyao"
-#BOOTCONFIG="rock-3c-rk3566_defconfig"
-BOOTCONFIG="rk3568_defconfig"
-KERNEL_TARGET="current,edge"
-KERNEL_TEST_TARGET="current"
+BOARD_MAINTAINER=""
+BOOTCONFIG="jp-tvbox-3566_defconfig"
+BOOT_SOC="rk3566"
+KERNEL_TARGET="legacy,vendor,edge"
 FULL_DESKTOP="yes"
 BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3566-jp-tvbox.dtb"
 IMAGE_PARTITION_TABLE="gpt"
 BOOT_SCENARIO="spl-blobs"
+ENABLE_EXTENSIONS="open-vfd"
+
+
+# Newer blobs. Tested to work with opi3b
+DDR_BLOB="rk35/rk3566_ddr_1056MHz_v1.13.bin"
+BL31_BLOB="rk35/rk3568_bl31_v1.33.elf"         # NOT a typo, bl31 is shared across 68 and 66
+ROCKUSB_BLOB="rk35/rk3566_spl_loader_1.14.bin" # For `EXT=rkdevflash` flashing
+
+# Override family config for this board; let's avoid conditionals in family config.
+function post_family_config__jp-tvbox-3566_uboot() {
+	display_alert "$BOARD" "mainline u-boot overrides" "info"
+
+	BOOTSOURCE="https://github.com/orangepi-xunlong/u-boot-orangepi.git"
+	BOOTBRANCH="commit:752ac3f2fdcfe9427ca8868d95025aacd48fc00b" # specific commit, from "branch:rk3568-2023.10"
+	BOOTDIR="u-boot-${BOARD}"                                    # do not share u-boot directory
+	BOOTPATCHDIR="v2017.09-rk3588-jp-tvbox"
+
+	BOOTDELAY=1 # Wait for UART interrupt to enter UMS/RockUSB mode etc
+}
+
+function post_family_config__jp-tvbox_kernel() {
+	display_alert "$BOARD" "mainline BOOTPATCHDIR" "info"
+	if [[ ${BRANCH} = "legacy" ]]; then
+		KERNELPATCHDIR="rockchip-5.10-jp-tvbox"
+	elif [[ ${BRANCH} = "vendor" ]]; then
+		KERNELPATCHDIR="rockchip-6.1-jp-tvbox"
+		#CRUSTCONFIG="rockchip-6.1.config"
+	fi
+}
+
+function custom_kernel_config__jp-tvbox_cpuinfo() {
+	if [[ ${BRANCH} = "vendor" ]]; then
+		display_alert "jp-tvbox" "vendor Enabling ROCKCHIP_CPUINFO HASH" "info"
+		kernel_config_modifying_hashes+=(
+			"CONFIG_NVMEM_RMEM=y"
+			"CONFIG_NVMEM_ROCKCHIP_EFUSE=y"
+			"CONFIG_NVMEM_ROCKCHIP_OTP=y"
+			"CONFIG_ROCKCHIP_CPUINFO=y"
+		)
+
+		if [[ -f .config ]] && [[ "${KERNEL_CONFIGURE:-yes}" != "yes" ]]; then
+			display_alert "jp-tvbox" "vendor Enabling ROCKCHIP_CPUINFO CONFIG" "info"
+			kernel_config_set_y CONFIG_NVMEM_RMEM
+			kernel_config_set_y CONFIG_NVMEM_ROCKCHIP_EFUSE
+			kernel_config_set_y CONFIG_NVMEM_ROCKCHIP_OTP
+			kernel_config_set_y CONFIG_ROCKCHIP_CPUINFO
+			#run_host_command_logged ./scripts/config --set-val CONFIG_ARCH_MMAP_RND_BITS 18
+			#run_host_command_logged ./scripts/config --set-val CONFIG_ARCH_MMAP_RND_COMPAT_BITS 11
+			run_kernel_make olddefconfig
+		fi
+	fi
+}
+
+
+function post_family_tweaks_bsp__jp-tvbox-3566() {
+	display_alert "$BOARD" "Installing jp-boxtv led bluetooth service" "info"
+
+	install -m 755 $SRC/packages/bsp/jp-tvbox/brcm_patchram_plus $destination/usr/bin
+	install -m 755 $SRC/packages/bsp/jp-tvbox/jp-tvbox-bluetooth.sh $destination/usr/bin
+	mkdir -p $destination/usr/lib/firmware/
+	cp $SRC/packages/bsp/jp-tvbox/bcm4339a0.hcd $destination/usr/lib/firmware/
+	cp $SRC/packages/bsp/jp-tvbox/jp-tvbox-bluetooth.service $destination/lib/systemd/system/
+	cp $SRC/packages/bsp/jp-tvbox/jp-tvbox-led.service $destination/lib/systemd/system/
+	return 0
+}
+
+function post_family_tweaks__jp-tvbox-3566_enable_services() {
+	display_alert "$BOARD" "Enabling jp-boxtv led bluetooth service" "info"
+	chroot_sdcard systemctl enable jp-tvbox-bluetooth.service
+	chroot_sdcard systemctl enable jp-tvbox-led.service
+	return 0
+}
