@@ -1,0 +1,14 @@
+[Unit]
+Description=openvfd
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/vfd.conf
+ExecStartPre=/bin/sh -c ". /etc/vfd.conf; /sbin/modprobe openvfd vfd_gpio_clk=$vfd_gpio_clk vfd_gpio_dat=$vfd_gpio_dat vfd_gpio_stb=$vfd_gpio_stb vfd_chars=$vfd_chars vfd_dot_bits=$vfd_dot_bits vfd_display_type=$vfd_display_type vfd_gpio_chip_name=$vfd_gpio_chip_name;"
+ExecStart=/usr/bin/YAopenvfD $openvfD_args 
+ExecStop=/usr/bin/killall YAopenvfD
+ExecStopPost=-/sbin/rmmod openvfd
+
+[Install]
+WantedBy=multi-user.target

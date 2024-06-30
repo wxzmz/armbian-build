@@ -72,13 +72,16 @@ function post_family_tweaks_bsp__jp-tvbox-3566() {
 	mkdir -p $destination/usr/lib/firmware/
 	cp $SRC/packages/bsp/jp-tvbox/bcm4339a0.hcd $destination/usr/lib/firmware/
 	cp $SRC/packages/bsp/jp-tvbox/jp-tvbox-bluetooth.service $destination/lib/systemd/system/
-	cp $SRC/packages/bsp/jp-tvbox/jp-tvbox-led.service $destination/lib/systemd/system/
+#	cp $SRC/packages/bsp/jp-tvbox/jp-tvbox-led.service $destination/lib/systemd/system/
+	cp $SRC/packages/bsp/jp-tvbox/vfd.conf $destination/etc/
+	cp $SRC/packages/bsp/jp-tvbox/openvfd.service $destination/lib/systemd/system/
 	return 0
 }
 
 function post_family_tweaks__jp-tvbox-3566_enable_services() {
 	display_alert "$BOARD" "Enabling jp-boxtv led bluetooth service" "info"
 	chroot_sdcard systemctl enable jp-tvbox-bluetooth.service
-	chroot_sdcard systemctl enable jp-tvbox-led.service
+#	chroot_sdcard systemctl enable jp-tvbox-led.service
+	chroot_sdcard systemctl enable openvfd.service
 	return 0
 }
