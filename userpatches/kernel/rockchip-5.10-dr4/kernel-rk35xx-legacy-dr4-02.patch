@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Wed, 7 Aug 2024 18:39:36 +0800
+Subject: Patching kernel rk35xx files
+ arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/rk3566-dr4.dts | 14 +++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts b/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
+index 7ad485daf49b..a4b2cf09f7f3 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
+@@ -419,11 +419,21 @@ backlight2: red {
+             232 233 234 235 236 237 238 239
+             240 241 242 243 244 245 246 247
+             248 249 250 251 252 253 254 255
+         >;
+         default-brightness-level = <0>;
+-    };	
++    };
++
++	fan_gpio_control {
++            compatible = "fan_gpio_control";
++            gpio-pin = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
++            temperature-device = "soc-thermal";
++            temp-on = <60000>;
++            time = <10000>;
++            status = "okay";
++	};	
++	
+ };
+ 
+ &bus_npu {
+     bus-supply = <&vdd_logic>;
+     pvtm-supply = <&vdd_cpu>;
+@@ -1323,10 +1333,12 @@ &sata0 {
+ &sata1 {
+     status = "disabled";
+ };
+ 
+ &sata2 {
++	//forcing FBSCP
++	compatible = "rockchip,rk-ahci", "snps,dwc-ahci";
+     status = "okay";
+ };
+ 
+ &pwm0 {
+     status = "okay";
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+
