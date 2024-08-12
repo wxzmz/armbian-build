@@ -1,18 +1,34 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Doe <john.doe@somewhere.on.planet>
-Date: Wed, 7 Aug 2024 18:39:36 +0800
+Date: Sun, 11 Aug 2024 01:49:35 +0800
 Subject: Patching kernel rk35xx files
  arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
+ arch/arm64/boot/dts/rockchip/rk3566-dr4.dtsi drivers/regulator/fan53555.c
 
 Signed-off-by: John Doe <john.doe@somewhere.on.planet>
 ---
- arch/arm64/boot/dts/rockchip/rk3566-dr4.dts | 14 +++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ arch/arm64/boot/dts/rockchip/rk3566-dr4.dts  | 30 ++--
+ arch/arm64/boot/dts/rockchip/rk3566-dr4.dtsi | 69 ----------
+ drivers/regulator/fan53555.c                 | 25 ++++
+ 3 files changed, 45 insertions(+), 79 deletions(-)
 
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts b/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
-index 7ad485daf49b..a4b2cf09f7f3 100644
+index 7ad485daf49b..2ec4d5b7292c 100644
 --- a/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-dr4.dts
+@@ -10,11 +10,11 @@
+ #include <dt-bindings/input/rk-input.h>
+ #include <dt-bindings/display/drm_mipi_dsi.h>
+ #include <dt-bindings/sensor-dev.h>
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
+-#include "rk3566-dr4.dtsi"
++#include "rk3566.dtsi"
+ #include "rk3568-linux.dtsi"
+ 
+ / { 
+ 
+ 	model = "dr4-rk3566-rmt";
 @@ -419,11 +419,21 @@ backlight2: red {
              232 233 234 235 236 237 238 239
              240 241 242 243 244 245 246 247
@@ -36,7 +52,55 @@ index 7ad485daf49b..a4b2cf09f7f3 100644
  &bus_npu {
      bus-supply = <&vdd_logic>;
      pvtm-supply = <&vdd_cpu>;
-@@ -1323,10 +1333,12 @@ &sata0 {
+@@ -993,16 +1003,18 @@ pmic_int: pmic_int {
+                 <0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;
+         };
+ 
+         soc_slppin_gpio: soc_slppin_gpio {
+             rockchip,pins =
+-                <0 RK_PA2 RK_FUNC_GPIO &pcfg_output_low_pull_down>;
++                //<0 RK_PA2 RK_FUNC_GPIO &pcfg_output_low_pull_down>;
++				<0 RK_PA2 RK_FUNC_GPIO &pcfg_output_low>;
+         };
+ 
+         soc_slppin_slp: soc_slppin_slp {
+             rockchip,pins =
+-                <0 RK_PA2 1 &pcfg_pull_up>;
++                //<0 RK_PA2 1 &pcfg_pull_up>;
++				<0 RK_PA2 1 &pcfg_pull_none>;
+         };
+ 
+         soc_slppin_rst: soc_slppin_rst {
+             rockchip,pins =
+                 <0 RK_PA2 2 &pcfg_pull_none>;
+@@ -1157,15 +1169,15 @@ &spdif_8ch {
+ };
+ 
+ &tsadc {
+     status = "okay";
+ };
+-
++/*
+ &combphy0_us {
+     status = "okay";
+ };
+-
++*/
+ &usb2phy1 {
+     status = "okay";
+ };
+ 
+ &u2phy1_host {
+@@ -1314,19 +1326,17 @@ &combphy1_usq {
+ 
+ &combphy2_psq {
+     status = "okay";
+ };
+ 
+-&sata0 {
+-    status = "disabled";
+-};
+-
  &sata1 {
      status = "disabled";
  };
@@ -49,6 +113,121 @@ index 7ad485daf49b..a4b2cf09f7f3 100644
  
  &pwm0 {
      status = "okay";
+diff --git a/arch/arm64/boot/dts/rockchip/rk3566-dr4.dtsi b/arch/arm64/boot/dts/rockchip/rk3566-dr4.dtsi
+deleted file mode 100644
+index 7c7561787a6c..000000000000
+--- a/arch/arm64/boot/dts/rockchip/rk3566-dr4.dtsi
++++ /dev/null
+@@ -1,69 +0,0 @@
+-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+-/*
+- * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+- */
+-
+-#include "rk3568.dtsi"
+-
+-/ {
+-	aliases {
+-		/delete-property/ ethernet0;
+-		/delete-property/ lvds1;
+-	};
+-};
+-
+-&cpu0_opp_table {
+-	/delete-node/ opp-1992000000;
+-};
+-
+-&lpddr4_params {
+-	/* freq info, freq_0 is final frequency, unit: MHz */
+-	freq_0 = <1056>;
+-};
+-
+-&lpddr4x_params {
+-	/* freq info, freq_0 is final frequency, unit: MHz */
+-	freq_0 = <1056>;
+-};
+-
+-&power {
+-	pd_pipe@RK3568_PD_PIPE {
+-		reg = <RK3568_PD_PIPE>;
+-		clocks = <&cru PCLK_PIPE>;
+-		pm_qos = <&qos_pcie2x1>,
+-			 <&qos_sata1>,
+-			 <&qos_sata2>,
+-			 <&qos_usb3_0>,
+-			 <&qos_usb3_1>;
+-	};
+-};
+-
+-&rkisp {
+-	rockchip,iq-feature = /bits/ 64 <0x1BFBF7FE67FF>;
+-};
+-
+-&usbdrd_dwc3 {
+-	phys = <&u2phy0_otg>;
+-	phy-names = "usb2-phy";
+-	extcon = <&usb2phy0>;
+-	maximum-speed = "high-speed";
+-	snps,dis_u2_susphy_quirk;
+-	snps,usb2-lpm-disable;
+-};
+-
+-///delete-node/ &combphy0_us;
+-/delete-node/ &gmac0_clkin;
+-/delete-node/ &gmac0_xpcsclk;
+-/delete-node/ &gmac0;
+-/delete-node/ &gmac_uio0;
+-/delete-node/ &lvds1;
+-/delete-node/ &pcie30_phy_grf;
+-/delete-node/ &pcie30phy;
+-/delete-node/ &pcie3x1;
+-/delete-node/ &pcie3x2;
+-/delete-node/ &qos_pcie3x1;
+-/delete-node/ &qos_pcie3x2;
+-/delete-node/ &qos_sata0;
+-///delete-node/ &sata0;
+-/delete-node/ &vp1_out_lvds1;
+-/delete-node/ &vp2_out_lvds1;
+diff --git a/drivers/regulator/fan53555.c b/drivers/regulator/fan53555.c
+index eca3e3aa6b08..c25cc630531e 100644
+--- a/drivers/regulator/fan53555.c
++++ b/drivers/regulator/fan53555.c
+@@ -641,10 +641,35 @@ static int fan53555_regulator_probe(struct i2c_client *client,
+ 		return PTR_ERR(regmap);
+ 	}
+ 	di->regmap = regmap;
+ 	di->dev = &client->dev;
+ 	i2c_set_clientdata(client, di);
++	
++	/* test chip */
++	client->addr = 0x40;
++	ret = regmap_read(di->regmap, FAN53555_ID1, &val);
++	if (ret < 0) {
++		printk("test 0x40 failed\n");
++	}
++	else {
++		printk("test 0x40 succes\n");
++		di->vendor = FAN53555_VENDOR_SILERGY;
++		goto test_out;
++	};	
++	
++	client->addr = 0x1c;
++	ret = regmap_read(di->regmap, FAN53555_ID1, &val);
++	if (ret < 0) {
++		printk("test 0x1c failed\n");
++	}
++	else {
++		printk("test 0x1c succes\n");
++		di->vendor = FAN53526_VENDOR_TCS;
++	};
++	
++	test_out:	
++	
+ 	/* Get chip ID */
+ 	ret = regmap_read(regmap, FAN53555_ID1, &val);
+ 	if (ret < 0) {
+ 		dev_err(&client->dev, "Failed to get chip ID!\n");
+ 		return ret;
 -- 
 Created with Armbian build tools https://github.com/armbian/build
 
