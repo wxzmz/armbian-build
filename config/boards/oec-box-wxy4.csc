@@ -5,8 +5,6 @@ BOARD_MAINTAINER=""
 BOOTCONFIG="rk3566-oec-box-wxy4_defconfig"
 BOOT_SOC="rk3566"
 KERNEL_TARGET="legacy,vendor,edge"
-FULL_DESKTOP="yes"
-BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3566-oec-box-wxy4.dtb"
 IMAGE_PARTITION_TABLE="gpt"
 BOOT_SCENARIO="spl-blobs"
@@ -36,9 +34,12 @@ function post_family_config__oec-box-wxy4_use_mainline_uboot() {
 
 function post_family_config__oec-box-wxy4_kernel() {
 	display_alert "$BOARD" "mainline BOOTPATCHDIR" "info"
-	if [[ ${BRANCH} = "legacy" ]] || [[ ${BRANCH} = "vendor" ]]; then
+	if [[ ${BRANCH} = "legacy" ]] ; then
 		KERNELPATCHDIR="rockchip-5.10-wxy4"
-	fi
+	else
+		KERNELPATCHDIR="rockchip-6.1-wxy4"
+	fi	
+
 }
 
 

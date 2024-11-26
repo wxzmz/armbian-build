@@ -1,0 +1,849 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Tue, 26 Nov 2024 23:16:56 +0800
+Subject: Patching kernel rk35xx files arch/arm64/boot/dts/rockchip/Makefile
+ arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts
+ drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/Makefile                |   2 +-
+ arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts | 719 ++++++++++
+ drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c       |  50 +-
+ 3 files changed, 758 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/Makefile b/arch/arm64/boot/dts/rockchip/Makefile
+index 1a081603f552..ff5e10601ca5 100644
+--- a/arch/arm64/boot/dts/rockchip/Makefile
++++ b/arch/arm64/boot/dts/rockchip/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+-dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb.dtb
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-oec-box-wxy4.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-engicam-px30-core-ctouch2.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-engicam-px30-core-ctouch2-of10.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-engicam-px30-core-edimm2.2.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb-ddr3-v10.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb-ddr3-v10-avb.dtb
+diff --git a/arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts b/arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts
+new file mode 100644
+index 000000000000..aa1291f3ff5e
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts
+@@ -0,0 +1,719 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
++ *
++ */
++/dts-v1/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/pwm/pwm.h>
++#include <dt-bindings/pinctrl/rockchip.h>
++#include <dt-bindings/input/rk-input.h>
++#include <dt-bindings/display/drm_mipi_dsi.h>
++#include <dt-bindings/sensor-dev.h>
++#include <dt-bindings/display/rockchip_vop.h>
++#include "rk3566.dtsi"
++#include "rk3568-linux.dtsi"
++
++
++/ {
++	model = "OEC BOX WXY4";
++	compatible = "rockchip,rk3566-oec-box-wxy4", "rockchip,rk3566";
++	
++	chosen: chosen {
++		bootargs = "earlycon=uart8250,mmio32,0xfe660000 console=ttyFIQ0";
++	};
++
++	adc_keys: adc-keys {
++		compatible = "adc-keys";
++		io-channels = <&saradc 0>;
++		io-channel-names = "buttons";
++		keyup-threshold-microvolt = <1800000>;
++		poll-interval = <100>;
++
++		vol-up-key {
++			label = "volume up";
++			linux,code = <KEY_VOLUMEUP>;
++			press-threshold-microvolt = <1750>;
++		};
++
++		vol-down-key {
++			label = "volume down";
++			linux,code = <KEY_VOLUMEDOWN>;
++			press-threshold-microvolt = <297500>;
++		};
++	};
++
++	dc_12v: dc-12v {
++		compatible = "regulator-fixed";
++		regulator-name = "dc_12v";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++	};	
++
++	hdmi_sound: hdmi-sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,name = "hdmi-sound";
++		status = "okay";
++		rockchip,jack-det;		
++
++		simple-audio-card,cpu {
++				sound-dai = <&i2s0_8ch>;
++		};
++		simple-audio-card,codec {
++				sound-dai = <&hdmi>;
++		};
++		
++	};	
++
++	spdif_sound: spdif-sound {
++		status = "disabled";
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "ROCKCHIP,SPDIF";
++		simple-audio-card,cpu {
++			sound-dai = <&spdif_8ch>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&spdif_out>;
++		};
++	};
++
++	spdif_out: spdif-out {
++		status = "okay";
++		compatible = "linux,spdif-dit";
++		#sound-dai-cells = <0>;
++	};	
++		
++
++	vcc3v3_sys: vcc3v3-sys {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3_sys";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&dc_12v>;
++	};
++
++	vcc5v0_sys: vcc5v0-sys {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc5v0_sys";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&dc_12v>;
++	};
++	
++//-00	
++	vcc_1v8:vcc_1v8 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc_1v8";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <1800000>;
++		regulator-max-microvolt = <1800000>;
++		vin-supply = <&vcc5v0_sys>;
++	};
++
++	vcc_3v3:vcc_3v3 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc_3v3";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc5v0_sys>;
++	};
++
++	vdd_fixed:vdd-fixed {
++		compatible = "regulator-fixed";
++		regulator-name = "vdd_fixed";
++		regulator-min-microvolt = <950000>;
++		regulator-max-microvolt = <950000>;
++		regulator-always-on;
++		regulator-boot-on;
++		vin-supply = <&vcc5v0_sys>;
++	};
++
++	vdd_cpu:vdd-cpu {
++		compatible = "pwm-regulator";
++		pwms = <&pwm0 0 5000 1>;
++		regulator-name = "vdd_cpu";
++		regulator-min-microvolt = <800000>;
++		regulator-max-microvolt = <1200000>;
++		regulator-init-microvolt = <950000>;
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-settling-time-up-us = <250>;
++		regulator-ramp-delay = <2300>;
++		pwm-supply = <&vcc5v0_sys>;
++		status = "okay";
++	};
++
++	vdd_logic:vdd-logic {
++		compatible = "pwm-regulator";
++		pwms = <&pwm1 0 5000 1>;
++		regulator-name = "vdd_logic";
++		regulator-min-microvolt = <800000>;
++		regulator-max-microvolt = <1100000>;
++		regulator-init-microvolt = <950000>;
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-settling-time-up-us = <250>;
++		regulator-ramp-delay = <6001>;
++		pwm-supply = <&vcc5v0_sys>;
++		status = "okay";
++	};
++	
++	gpio-leds {
++		status = "disabled";
++		compatible = "gpio-leds";
++
++		blue-led {
++			gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_LOW>;
++			default-state = "off";
++		};
++
++		green-led {
++			gpios = <&gpio3  RK_PB4 GPIO_ACTIVE_LOW>;
++			default-state = "on";
++		};
++
++		red-led {
++			gpios = <&gpio0 RK_PC3 GPIO_ACTIVE_LOW>;
++			default-state = "off";
++		};
++	};
++	
++//-00
++
++	vcc5v0_host: vcc5v0-host-regulator {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		gpio = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>; 
++		pinctrl-names = "default";
++		pinctrl-0 = <&vcc5v0_host_en>;
++		regulator-name = "vcc5v0_host";
++		regulator-always-on;
++	};
++	
++	test-power {
++		status = "okay";
++	};	
++	
++};
++
++&bus_npu {
++	bus-supply = <&vdd_logic>;
++	pvtm-supply = <&vdd_cpu>;
++	status = "okay";
++};
++
++&cpu0 {
++	cpu-supply = <&vdd_cpu>;
++};
++
++&dfi {
++	status = "okay";
++};
++
++&dmc {
++//原厂关闭了自动调频
++	auto-freq-en = <0>;
++	center-supply = <&vdd_fixed>;
++	status = "okay";
++};
++
++&gpu {
++//	clock-names = "gpu", "bus";
++//	interrupt-names = "gpu", "mmu", "job";
++	mali-supply = <&vdd_fixed>;
++	status = "okay";
++};
++
++
++&display_subsystem {
++    status = "disabled";
++};
++
++&hdmi {
++	status = "disabled";
++	rockchip,phy-table =
++		<92812500  0x8009 0x0000 0x0270>,
++		<165000000 0x800b 0x0000 0x026d>,
++		<185625000 0x800b 0x0000 0x01ed>,
++		<297000000 0x800b 0x0000 0x01ad>,
++		<594000000 0x8029 0x0000 0x0088>,
++		<000000000 0x0000 0x0000 0x0000>;
++	rockchip,defaultmode = <4>;
++};
++
++&hdmi_in_vp0 {
++	status = "okay";
++};
++
++
++&i2c0 {
++	status = "disabled";
++
++};
++
++&i2c1 {
++	status = "disabled";
++};
++
++&i2c2 {
++	status = "disabled";
++};
++
++&uart0 {
++	status = "disabled";
++};
++
++&uart1 {
++	status = "disabled";
++};
++
++&uart5 {
++	pinctrl-0 = <&uart5m1_xfer>;
++	status = "okay";
++};
++
++&uart7 {
++	pinctrl-0 = <&uart7m1_xfer>;
++	status = "okay";
++};
++
++&i2s1_8ch {
++	status = "disabled";
++	rockchip,clk-trcm = <1>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2s1m0_sclktx
++		     &i2s1m0_lrcktx
++		     &i2s1m0_sdi0
++		     &i2s1m0_sdo0>;
++};
++
++
++&i2s3_2ch{
++	status = "disabled";
++};
++
++&iep {
++	status = "okay";
++};
++
++&iep_mmu {
++	status = "okay";
++};
++
++&jpegd {
++	status = "okay";
++};
++
++&jpegd_mmu {
++	status = "okay";
++};
++
++&mpp_srv {
++	status = "okay";
++};
++/*
++&rockchip_suspend {
++	status = "okay";
++//	rockchip,virtual-poweroff = <1>;
++	rockchip,sleep-debug-en = <1>;
++	rockchip,sleep-mode-config = <0x4c4>;
++	rockchip,wakeup-config = <
++		(0 | RKPM_PWM0_WKUP_EN | RKPM_CPU0_WKUP_EN
++		)
++	>;
++};
++*/
++&sata2 {
++	status = "okay";
++};
++
++&pinctrl {
++
++	stata {	
++		sata_pm_reset: sata-pm-reset {
++			rockchip,pins = <0 RK_PA6 RK_FUNC_GPIO &pcfg_output_high>;
++		};
++	};
++
++	usb {
++		vcc5v0_host_en: vcc5v0-host-en {
++			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++	
++
++
++};
++
++ /*
++  * There are 10 independent IO domains in RK3566/RK3568, including PMUIO[0:2] and VCCIO[1:7].
++  * 1/ PMUIO0 and PMUIO1 are fixed-level power domains which cannot be configured;
++  * 2/ PMUIO2 and VCCIO1,VCCIO[3:7] domains require that their hardware power supply voltages
++  *    must be consistent with the software configuration correspondingly
++  *	a/ When the hardware IO level is connected to 1.8V, the software voltage configuration
++  *	   should also be configured to 1.8V accordingly;
++  *	b/ When the hardware IO level is connected to 3.3V, the software voltage configuration
++  *	   should also be configured to 3.3V accordingly;
++  * 3/ VCCIO2 voltage control selection (0xFDC20140)
++  *	BIT[0]: 0x0: from GPIO_0A7 (default)
++  *	BIT[0]: 0x1: from GRF
++  *    Default is determined by Pin FLASH_VOL_SEL/GPIO0_A7:
++  *	L:VCCIO2 must supply 3.3V
++  *	H:VCCIO2 must supply 1.8V
++  */
++
++&pmu_io_domains {
++        status = "okay";
++		pmuio1-supply = <&vcc_3v3>;
++        pmuio2-supply = <&vcc_3v3>;
++        vccio1-supply = <&vcc_1v8>;
++		vccio3-supply = <&vcc_3v3>;
++        vccio4-supply = <&vcc_1v8>;
++        vccio5-supply = <&vcc_3v3>;
++        vccio6-supply = <&vcc_1v8>;
++        vccio7-supply = <&vcc_3v3>;
++};
++
++&rk_rga {
++	status = "okay";
++};
++
++&rkvdec {
++	status = "okay";
++};
++
++&rkvdec_mmu {
++	status = "okay";
++};
++
++&rkvenc {
++//ps:	venc-supply = <&vdd_logic>;
++	status = "okay";
++};
++
++&rkvenc_mmu {
++	status = "okay";
++};
++//ps:
++&rknpu {
++	rknpu-supply = <&vdd_fixed>;
++	status = "okay";
++};
++
++&rknpu_mmu {
++	status = "okay";
++};
++
++&route_hdmi {
++	status = "okay";
++	connect = <&vp0_out_hdmi>;
++};
++
++&saradc {
++	status = "okay";
++	vref-supply = <&vcc_1v8>;
++};
++
++&sdhci {
++//原厂4.19删除如下三项
++	bus-width = <8>;
++//	no-sdio;
++//	no-sd;		
++	supports-emmc;
++	non-removable;
++//	max-frequency = <200000000>;
++	status = "okay";
++};
++
++
++&sfc {
++	status = "okay";
++};
++
++
++&tsadc {
++	status = "okay";
++};
++
++&u2phy0_host {
++	phy-supply = <&vcc5v0_host>;	
++	status = "okay";
++};
++
++&u2phy0_otg {
++	status = "okay";
++};
++
++&u2phy1_host {
++	phy-supply = <&vcc5v0_host>;
++	status = "okay";
++};
++
++&u2phy1_otg {
++	phy-supply = <&vcc5v0_host>;
++	status = "okay";
++};
++
++&usb2phy0 {
++	status = "okay";
++};
++
++&usb2phy1 {
++	status = "okay";
++};
++
++&usb_host0_ehci {
++	status = "okay";
++};
++
++&usb_host0_ohci {
++	status = "okay";
++};
++
++&usb_host1_ehci {
++	status = "okay";
++};
++
++&usb_host1_ohci {
++	status = "okay";
++};
++
++&usbdrd_dwc3 {
++//	dr_mode = "otg";
++	dr_mode = "host";	
++	extcon = <&usb2phy0>;
++	status = "okay";
++};
++
++&usbdrd30 {
++	status = "okay";
++};
++
++&usbhost_dwc3 {
++	status = "okay";
++};
++
++&usbhost30 {
++	status = "okay";
++};
++
++&vad {
++	rockchip,audio-src = <0>;
++//原厂4.19删除	rockchip,buffer-time-ms = <128>;
++	rockchip,det-channel = <0>;
++	rockchip,mode = <0>;
++};
++
++&vdpu {
++	status = "okay";
++};
++
++&vdpu_mmu {
++	status = "okay";
++};
++
++&vepu {
++	status = "okay";
++};
++
++&vepu_mmu {
++	status = "okay";
++};
++
++&vop {
++	status = "okay";
++	assigned-clocks = <&cru DCLK_VOP1>;
++	assigned-clock-parents = <&cru PLL_VPLL>;
++};
++
++&vop_mmu {
++	status = "okay";
++};
++
++&mdio1 {
++	rgmii_phy1: phy@0 {
++		compatible = "ethernet-phy-ieee802.3-c22";
++		reg = <0x0>;
++	};
++};
++
++&gmac1 {
++	phy-mode = "rgmii";	
++	clock_in_out = "input";
++
++	snps,reset-gpio = <&gpio4 RK_PC2 GPIO_ACTIVE_LOW>;
++	snps,reset-active-low;
++	/* Reset time is 20ms, 100ms for rtl8211f */
++	snps,reset-delays-us = <0 20000 100000>;
++
++	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&gmac1_clkin>;
++//	assigned-clock-rates = <0>, <25000000>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&gmac1m1_miim
++		     &gmac1m1_tx_bus2
++		     &gmac1m1_rx_bus2
++			 &gmac1m1_rgmii_clk
++			 &gmac1m1_rgmii_bus
++		     &gmac1m1_clkinout>;
++
++	tx_delay = <0x4f>;
++	rx_delay = <0x2d>;
++
++	phy-handle = <&rgmii_phy1>;
++	status = "okay";
++};
++
++&sdmmc1 {
++	status = "disabled";
++};
++
++&combphy1_usq {
++	status = "okay";
++};
++
++&combphy2_psq {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&sata_pm_reset>;
++};
++
++/* 5.10 pansoft
++
++&vp0 {
++	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0 | 1 <<
++	ROCKCHIP_VOP2_SMART0 | 1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1 | 1 <<
++	ROCKCHIP_VOP2_SMART1)>;
++	rockchip,primary-plane = <ROCKCHIP_VOP2_SMART0>;
++};
++*/
++
++
++&csi2_dphy_hw {
++      status = "disabled";
++};
++
++&csi2_dphy0 {
++        status = "disabled";
++};
++
++&csi2_dphy1 {
++        status = "disabled";
++};
++
++&rkisp {
++        status = "disabled";
++};
++
++&rkisp_mmu {
++        status = "disabled";
++};
++
++&rkisp_vir0 {
++        status = "disabled";
++};
++
++&edp {
++	status = "disabled";
++};
++
++&edp_phy {
++	status = "disabled";
++};
++
++&route_edp {
++	status = "disabled";
++};
++
++&pwm0 {
++	status = "okay";
++};
++
++&pwm1 {
++	status = "okay";
++};
++
++&pwm2 {
++	status = "disabled";
++};
++
++&pwm3 {
++	status = "disabled";
++
++};
++
++&pwm4 {
++	status = "disabled";
++};
++
++&pwm5 {
++	status = "disabled";
++};
++
++&pwm7 {
++	status = "disabled";
++};
++
++
++
++&dsi1 {
++	status = "disabled";
++};
++
++&spdif_8ch {
++	status = "okay";
++};
++
++&pcie2x1 {
++	num-viewport = <8>;
++	status = "disabled";
++};
++
++
++&threshold {
++	temperature = <60000>;
++};
++
++&video_phy0 {
++	status = "okay";
++};
++
++&video_phy1 {
++	status = "okay";
++};
++/*
++&dmc_opp_table {
++
++	opp-1056000000 {
++		opp-supported-hw = <0xf9 0xffff>;
++		opp-hz = /bits/ 64 <1056000000>;
++//		opp-microvolt = <850000 850000 850000>;
++//		opp-microvolt-L0 = <850000 850000 850000>;
++//		opp-microvolt-L1 = <850000 850000 850000>;
++		opp-microvolt = <900000 900000 1000000>;
++		opp-microvolt-L0 = <900000 900000 1000000>;
++		opp-microvolt-L1 = <875000 875000 1000000>;		
++		
++	};
++
++	/delete-node/ opp-1560000000;
++	/delete-node/ opp-j-m-1560000000;
++};
++*/
++
++&cpu0_opp_table {
++	/delete-node/ opp-1992000000;
++};
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
+index c73d147230d3..d6aa58f50c72 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
+@@ -24,14 +24,16 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/regmap.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/soc/rockchip/rk_vendor_storage.h>
+ #include <soc/rockchip/rockchip_csu.h>
++#include <asm/system_info.h>
+ #include "stmmac_platform.h"
+ #include "dwmac-rk-tool.h"
+ 
+ #define MAX_ETH		2
++static int dev_num = 0;
+ 
+ struct rk_priv_data;
+ struct rk_gmac_ops {
+ 	void (*set_to_rgmii)(struct rk_priv_data *bsp_priv,
+ 			     int tx_delay, int rx_delay);
+@@ -2962,10 +2964,35 @@ int dwmac_rk_get_phy_interface(struct stmmac_priv *priv)
+ 
+ 	return bsp_priv->phy_iface;
+ }
+ EXPORT_SYMBOL(dwmac_rk_get_phy_interface);
+ 
++/*
++ * Create an ethernet address from the system serial number.
++ */
++static int __init etherm_addr(char *addr)
++{
++	unsigned int serial;
++
++	if (system_serial_low == 0 && system_serial_high == 0)
++		return -ENODEV;
++
++	serial = system_serial_low | system_serial_high;
++
++	addr[0] = 0;
++	addr[1] = 0;
++	addr[2] = 0xa4;
++	addr[3] = 0x10 + (serial >> 24);
++	addr[4] = serial >> 16;
++	addr[5] = (serial >> 8) + dev_num;
++
++	dev_num++;
++
++	return 0;
++}
++
++
+ static void rk_get_eth_addr(void *priv, unsigned char *addr)
+ {
+ 	struct rk_priv_data *bsp_priv = priv;
+ 	struct device *dev = &bsp_priv->pdev->dev;
+ 	unsigned char ethaddr[ETH_ALEN * MAX_ETH] = {0};
+@@ -2980,25 +3007,24 @@ static void rk_get_eth_addr(void *priv, unsigned char *addr)
+ 	}
+ 
+ 	ret = rk_vendor_read(LAN_MAC_ID, ethaddr, ETH_ALEN * MAX_ETH);
+ 	if (ret <= 0 ||
+ 	    !is_valid_ether_addr(&ethaddr[id * ETH_ALEN])) {
+-		dev_err(dev, "%s: rk_vendor_read eth mac address failed (%d)\n",
+-			__func__, ret);
+-		eth_random_addr(&ethaddr[id * ETH_ALEN]);
++		//random_ether_addr(&ethaddr[id * ETH_ALEN]);
++		etherm_addr(&ethaddr[id * ETH_ALEN]);
+ 		memcpy(addr, &ethaddr[id * ETH_ALEN], ETH_ALEN);
+-		dev_err(dev, "%s: generate random eth mac address: %pM\n", __func__, addr);
++		dev_err(dev, "%s: use serial to generate eth mac address: %pM\n", __func__, addr);
+ 
+-		ret = rk_vendor_write(LAN_MAC_ID, ethaddr, ETH_ALEN * MAX_ETH);
+-		if (ret != 0)
+-			dev_err(dev, "%s: rk_vendor_write eth mac address failed (%d)\n",
+-				__func__, ret);
++		//ret = rk_vendor_write(LAN_MAC_ID, ethaddr, ETH_ALEN * MAX_ETH);
++		//if (ret != 0)
++		//	dev_err(dev, "%s: rk_vendor_write eth mac address failed (%d)\n",
++		//		__func__, ret);
+ 
+-		ret = rk_vendor_read(LAN_MAC_ID, ethaddr, ETH_ALEN * MAX_ETH);
+-		if (ret != ETH_ALEN * MAX_ETH)
+-			dev_err(dev, "%s: id: %d rk_vendor_read eth mac address failed (%d)\n",
+-				__func__, id, ret);
++		//ret = rk_vendor_read(LAN_MAC_ID, ethaddr, ETH_ALEN * MAX_ETH);
++		//if (ret != ETH_ALEN * MAX_ETH)
++		//	dev_err(dev, "%s: id: %d rk_vendor_read eth mac address failed (%d)\n",
++		//		__func__, id, ret);
+ 	} else {
+ 		memcpy(addr, &ethaddr[id * ETH_ALEN], ETH_ALEN);
+ 	}
+ 
+ out:
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+
