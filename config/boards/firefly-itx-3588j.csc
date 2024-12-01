@@ -3,13 +3,16 @@ BOARD_NAME="Firefly ITX-3588J"
 BOARDFAMILY="rockchip-rk3588"
 BOOT_SOC="rk3588"
 BOARD_MAINTAINER="SeeleVolleri"
-KERNEL_TARGET="vendor"
+KERNEL_TARGET="legacy,vendor"
 BOOTCONFIG="rk3588_defconfig"
 BOOT_FDT_FILE="rockchip/rk3588-firefly-itx-3588j.dtb"
 BOOT_LOGO="desktop"
 FULL_DESKTOP="yes"
 IMAGE_PARTITION_TABLE="gpt"
-
+#BOOTFS_TYPE="fat"
+#BOOTSIZE="300"
+#FIXED_IMAGE_SIZE=8807
+#declare -g UEFI_EDK2_BOARD_ID="itx-3588j" # This _only_ used for uefi-edk2-rk3588 extension
 function post_family_tweaks_bsp__firefly_itx_3588j() {
 	display_alert "$BOARD" "Installing rk3588-bluetooth.service" "info"
 
