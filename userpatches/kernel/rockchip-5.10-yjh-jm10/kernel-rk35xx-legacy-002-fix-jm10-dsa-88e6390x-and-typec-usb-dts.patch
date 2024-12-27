@@ -1,0 +1,271 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Fri, 27 Dec 2024 21:49:24 +0800
+Subject: Patching kernel rk35xx files
+ arch/arm64/boot/dts/rockchip/rk3588-yjh-jm10.dts
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/rk3588-yjh-jm10.dts | 169 +++++++++-
+ 1 file changed, 160 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588-yjh-jm10.dts b/arch/arm64/boot/dts/rockchip/rk3588-yjh-jm10.dts
+index 78fc7abefd65..8d8c87835d01 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588-yjh-jm10.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-yjh-jm10.dts
+@@ -394,36 +394,163 @@ &gmac0_rgmii_clk
+ 	
+ 	tx_delay = <0x45>;
+ 	//rx_delay = <0x4a>;
+ 	status = "okay";
+ 	
+-	phy-handle = <&rgmii_phy0>;
++	//phy-handle = <&rgmii_phy0>;
+ 
+ 	fixed-link {
+ 		speed = <1000>;
+ 		full-duplex;
+ 	};
+ 
+ };
+ 
++
++/*
+ &mdio0 {
+ 	rgmii_phy0: phy@1 {
+ 		compatible = "ethernet-phy-ieee802.3-c22";
+ 		reg = <0x1>;
+ 	};
+ };
++*/
+ 
+-&gmac0_mtl_rx_setup {
+-	snps,rx-queues-to-use = <2>;
+-	queue1 {};
+-};
+ 
+-&gmac0_mtl_tx_setup {
+-	snps,tx-queues-to-use = <2>;
+-	queue1 {};
++&mdio0 {
++	switch0: switch@0 {
++		compatible = "marvell,mv88e6190";
++		#address-cells = <1>;
++		#size-cells = <0>;					
++		reg = <0x1e>;
++		dsa,member = <0 0>;
++		status = "okay";
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0x0>;
++				label = "cpu";
++				ethernet = <&gmac0>;
++				phy-handle = <&switch0phy0>;
++				phy-mode = "rgmii";
++
++				fixed-link {
++					speed = <1000>;
++					full-duplex;
++				};
++
++			};
++
++			port@1 {
++				reg = <0x1>;
++				label = "eth1";
++				phy-handle = <&switch0phy1>;
++			};
++
++			port@2 {
++				reg = <0x2>;
++				label = "eth2";
++				phy-handle = <&switch0phy2>;
++			};
++
++			port@3 {
++				reg = <0x3>;
++				label = "eth3";
++				phy-handle = <&switch0phy3>;
++			};
++
++			port@4 {
++				reg = <0x4>;
++				label = "eth4";
++				phy-handle = <&switch0phy4>;
++			};
++
++			port@5 {
++				reg = <0x5>;
++				label = "eth5";
++				phy-handle = <&switch0phy5>;
++			};
++
++			port@6 {
++				reg = <0x6>;
++				label = "eth6";
++				phy-handle = <&switch0phy6>;
++			};
++
++
++			port@7 {
++				reg = <0x7>;
++				label = "eth7";
++				phy-handle = <&switch0phy7>;
++			};
++
++			port@8 {
++				reg = <0x8>;
++				label = "eth8";
++				phy-handle = <&switch0phy8>;
++			};
++		};		
++
++		mdio {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			// The MV88E6390 does not report the phy type on the MDIO bus properly, so we force it to the correct value here using the compatible property. 
++			switch0phy0: ethernet-phy@0 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <0>;
++				broken-turn-around;
++			};
++			switch0phy1: ethernet-phy@1 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <1>;
++				broken-turn-around;
++			};
++			switch0phy2: ethernet-phy@2 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <2>;
++				broken-turn-around;
++			};
++			switch0phy3: ethernet-phy@3 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <3>;
++				broken-turn-around;
++			};
++			switch0phy4: ethernet-phy@4 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <4>;
++				broken-turn-around;
++			};
++			switch0phy5: ethernet-phy@5 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <5>;
++				broken-turn-around;
++			};
++			switch0phy6: ethernet-phy@6 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <6>;
++				broken-turn-around;
++			};
++			switch0phy7: ethernet-phy@7 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <7>;
++				broken-turn-around;
++			};
++			switch0phy8: ethernet-phy@8 {
++				compatible = "ethernet-phy-id0141.0f90";
++				reg = <8>;
++				broken-turn-around;
++			};
++		};
++
++	};
+ };
+ 
++
+ &gpu {
+ 	mali-supply = <&vdd_gpu_s0>;
+ 	mem-supply = <&vdd_gpu_mem_s0>;
+ 	status = "okay";
+ };
+@@ -620,10 +747,11 @@ &pcie2x1l0 {
+ 	status = "okay";
+ 	rockchip,perst-inactive-ms = <500>;
+ 	vpcie3v3-supply = <&vcc3v3_pcie30>;
+ };
+ 
++/* pcie3.0 x 4 slot */
+ &pcie30phy {
+ 	status = "okay";
+ 	rockchip,pcie30-phymode = <PHY_MODE_PCIE_AGGREGATION>;	
+ };
+ 
+@@ -899,10 +1027,11 @@ &uart9 {
+ 	pinctrl-0 = <&uart9m2_xfer>;
+ 	status = "okay";
+ };
+ 
+ &u2phy0_otg {
++	//rockchip,typec-vbus-det;
+ 	status = "okay";
+ };
+ 
+ &u2phy2_host {
+ 	phy-supply = <&vcc5v0_host>;
+@@ -910,10 +1039,30 @@ &u2phy2_host {
+ };
+ 
+ &usbdp_phy0 {
+ 	status = "okay";
+ 	rockchip,dp-lane-mux = <2 3>;
++/*
++	orientation-switch;
++	svid = <0xff01>;
++	sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
++	sbu2-dc-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		usbdp_phy0_orientation_switch: endpoint@0 {
++			reg = <0>;
++			//remote-endpoint = <&usbc0_orien_sw>;
++		};
++		
++		usbdp_phy0_dp_altmode_mux: endpoint@1 {
++			reg = <1>;
++			//remote-endpoint = <&dp_altmode_mux>;
++		};
++	};
++*/
+ };
+ 
+ &usbdp_phy0_dp {
+ 	status = "okay";
+ };
+@@ -936,11 +1085,11 @@ &usbdp_phy1_u3 {
+ };
+ 
+ &usbdrd_dwc3_0 {
+ 	status = "okay";
+ 	extcon = <&u2phy0>;
+-	dr_mode = "host";
++	dr_mode = "otg";
+ };
+ 
+ &u2phy0 {
+ 	status = "okay";
+ };
+@@ -1085,10 +1234,12 @@ &u2phy1_otg {
+ 
+ &u2phy1 {
+ 	status = "okay";
+ };
+ 
++
++
+ &sata0 {
+ 	status = "okay";
+ };
+ 
+ /*
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+
