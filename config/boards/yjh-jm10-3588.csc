@@ -7,7 +7,7 @@ KERNEL_TARGET="legacy,vendor"
 BOOTCONFIG="rk3588_defconfig"
 BOOT_FDT_FILE="rockchip/rk3588-yjh-jm10.dtb"
 BOOT_LOGO="desktop"
-FULL_DESKTOP="yes"
+FULL_DESKTOP="no"
 #硬改dsa交换机 设置 JM10_DSA_88E6390="yes" 内核版本这里使用vendor 6.1x, legacy 5.10内核未测试
 #./compile.sh BOARD=yjh-jm10-3588 BRANCH=vendor BUILD_DESKTOP=no BUILD_MINIMAL=yes KERNEL_CONFIGURE=no RELEASE=noble JM10_DSA_88E6390=yes
 JM10_DSA_88E6390="no"
@@ -46,8 +46,15 @@ function post_family_tweaks__JM10-3588_naming_audios() {
 	return 0
 }
 
+function extension_prepare_config__dsa() {
+	if [[ ${JM10_DSA_88E6390} = "yes" ]] && [[ ${BRANCH} = "vendor" || ${BRANCH} = "legacy" ]] && [[ ${BUILD_DESKTOP} = "no" ]]; then
+		display_alert "jm10-3588" "Only for Jm10 Hard Change Enabling MV88E6XXX Img Name -dsa" "info"
+		EXTRA_IMAGE_SUFFIXES+=("-dsa")
+	fi
+}
+
 function custom_kernel_config__JM10-3588_MV88E6XXX() {
-	if [[ ${JM10_DSA_88E6390} = "yes" ]] && [[ ${BRANCH} = "vendor" || ${BRANCH} = "legacy" ]]; then
+	#if [[ ${JM10_DSA_88E6390} = "yes" ]] && [[ ${BRANCH} = "vendor" || ${BRANCH} = "legacy" ]]; then
 		display_alert "jm10-3588" "Only for Jm10 Hard Change Enabling MV88E6XXX HASH" "info"
 		kernel_config_modifying_hashes+=(
 			"CONFIG_NET_VENDOR_MARVELL=y"
@@ -66,7 +73,7 @@ function custom_kernel_config__JM10-3588_MV88E6XXX() {
 			kernel_config_set_y CONFIG_MVMDIO
 			run_kernel_make olddefconfig
 		fi
-	fi
+	#fi
 }
 
 
@@ -74,19 +81,23 @@ function post_family_tweaks__JM10-3588_enable_services() {
 	display_alert "fix armbian upgrade; hold kernel and dtb"
 	if [[ ${BRANCH} = "legacy" ]] ; then
 		display_alert "$BOARD" "Enabling JM10-3588 upgrade lock dtb adn kernel" "info"
+		chroot_sdcard apt-mark hold linux-image-legacy-rk35xx
 		chroot_sdcard apt-mark hold linux-dtb-legacy-rk35xx
 		chroot_sdcard apt-mark hold linux-u-boot-yjh-jm10-3588-legacy
 	else
 		display_alert "$BOARD" "Enabling JM10-3588 upgrade lock dtb adn kernel" "info"
+		chroot_sdcard apt-mark hold linux-image-vendor-rk35xx
 		chroot_sdcard apt-mark hold linux-dtb-vendor-rk35xx
 		chroot_sdcard apt-mark hold linux-u-boot-yjh-jm10-3588-vendor
 	fi
 
 	display_alert "$BOARD" "Enabling rk3588-bluetooth.service" "info"
+	chroot_sdcard_apt_get_install rfkill
 	chroot_sdcard systemctl enable rk3588-bluetooth.service
 
-	if [[ ${JM10_DSA_88E6390} = "yes" ]] && [[ ${BRANCH} = "vendor" || ${BRANCH} = "legacy" ]]; then
+	if [[ ${JM10_DSA_88E6390} = "yes" ]] && [[ ${BRANCH} = "vendor" || ${BRANCH} = "legacy" ]] && [[ ${BUILD_DESKTOP} = "no" ]]; then
 		#Only for Jm10 Hard Change. del /etc/netplan/10-dhcp-all-interfaces.yaml and add 10-dsa-MV88E6XXX-br0.yaml
+		#桌面配置	网络使用NetworkManager,自行图形化配置网桥,暂不用10-dsa-MV88E6XXX-br0.yaml配置网桥
 		display_alert "$BOARD" "Only for Jm10 Hard Change del 10-dhcp-all-interfaces.yaml and add 10-dsa-MV88E6XXX-br0.yaml" "info"
 		rm -rf ${SDCARD}/etc/netplan/*.yaml
 		cat <<- EOF > "${SDCARD}/etc/netplan/10-dsa-MV88E6XXX-br0.yaml"
@@ -142,7 +153,8 @@ network:
       parameters:
         stp: false
 EOF
-	fi
 	chmod 600 "${SDCARD}/etc/netplan/10-dsa-MV88E6XXX-br0.yaml"
+	fi
+
 	return 0
 }
