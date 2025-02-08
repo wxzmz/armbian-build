@@ -1,30 +1,29 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: John Doe <john.doe@somewhere.on.planet>
-Date: Tue, 26 Nov 2024 23:16:56 +0800
+Date: Sat, 8 Feb 2025 10:51:52 +0000
 Subject: Patching kernel rk35xx files arch/arm64/boot/dts/rockchip/Makefile
  arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts
  drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
 
 Signed-off-by: John Doe <john.doe@somewhere.on.planet>
 ---
- arch/arm64/boot/dts/rockchip/Makefile                |   2 +-
+ arch/arm64/boot/dts/rockchip/Makefile                |   1 +
  arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts | 719 ++++++++++
  drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c       |  50 +-
- 3 files changed, 758 insertions(+), 13 deletions(-)
+ 3 files changed, 758 insertions(+), 12 deletions(-)
 
 diff --git a/arch/arm64/boot/dts/rockchip/Makefile b/arch/arm64/boot/dts/rockchip/Makefile
-index 1a081603f552..ff5e10601ca5 100644
+index 4aa5290df41f..7cba65473084 100644
 --- a/arch/arm64/boot/dts/rockchip/Makefile
 +++ b/arch/arm64/boot/dts/rockchip/Makefile
-@@ -1,7 +1,7 @@
+@@ -1,6 +1,7 @@
  # SPDX-License-Identifier: GPL-2.0
--dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb.dtb
 +dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-oec-box-wxy4.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb.dtb
  dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-engicam-px30-core-ctouch2.dtb
  dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-engicam-px30-core-ctouch2-of10.dtb
  dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-engicam-px30-core-edimm2.2.dtb
  dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb-ddr3-v10.dtb
- dtb-$(CONFIG_ARCH_ROCKCHIP) += px30-evb-ddr3-v10-avb.dtb
 diff --git a/arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts b/arch/arm64/boot/dts/rockchip/rk3566-oec-box-wxy4.dts
 new file mode 100644
 index 000000000000..aa1291f3ff5e
@@ -751,7 +750,7 @@ index 000000000000..aa1291f3ff5e
 +	/delete-node/ opp-1992000000;
 +};
 diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
-index c73d147230d3..d6aa58f50c72 100644
+index a0d227a6fec2..ddb29cb0fde0 100644
 --- a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
 +++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
 @@ -24,14 +24,16 @@
@@ -771,7 +770,7 @@ index c73d147230d3..d6aa58f50c72 100644
  struct rk_gmac_ops {
  	void (*set_to_rgmii)(struct rk_priv_data *bsp_priv,
  			     int tx_delay, int rx_delay);
-@@ -2962,10 +2964,35 @@ int dwmac_rk_get_phy_interface(struct stmmac_priv *priv)
+@@ -3040,10 +3042,35 @@ int dwmac_rk_get_phy_interface(struct stmmac_priv *priv)
  
  	return bsp_priv->phy_iface;
  }
@@ -807,7 +806,7 @@ index c73d147230d3..d6aa58f50c72 100644
  	struct rk_priv_data *bsp_priv = priv;
  	struct device *dev = &bsp_priv->pdev->dev;
  	unsigned char ethaddr[ETH_ALEN * MAX_ETH] = {0};
-@@ -2980,25 +3007,24 @@ static void rk_get_eth_addr(void *priv, unsigned char *addr)
+@@ -3058,25 +3085,24 @@ static void rk_get_eth_addr(void *priv, unsigned char *addr)
  	}
  
  	ret = rk_vendor_read(LAN_MAC_ID, ethaddr, ETH_ALEN * MAX_ETH);
