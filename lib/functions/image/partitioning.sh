@@ -244,7 +244,7 @@ function prepare_partitions() {
 		display_alert "Partitioning with the following options" "$partition_script_output" "debug"
 		echo "${partition_script_output}" | run_host_command_logged sfdisk "${SDCARD}".raw || exit_with_error "Partitioning failed!"
 	fi
-
+	
 	call_extension_method "post_create_partitions" <<- 'POST_CREATE_PARTITIONS'
 		*called after all partitions are created, but not yet formatted*
 	POST_CREATE_PARTITIONS
@@ -277,7 +277,8 @@ function prepare_partitions() {
 	## ROOT PARTITION
 	##
 	if [[ -n $rootpart ]]; then
-		local rootdevice="${LOOP}p${rootpart}"
+		local rootdevice=${LOOP}p${rootpart}
+		local physical_rootdevice=$rootdevice
 
 		call_extension_method "prepare_root_device" <<- 'PREPARE_ROOT_DEVICE'
 			*Specialized storage extensions typically transform the root device into a mapped device and should hook in here *
@@ -307,15 +308,17 @@ function prepare_partitions() {
 		run_host_command_logged mount ${fscreateopt} $rootdevice $MOUNT/
 
 		# create fstab (and crypttab) entry
-		local rootfs
 		if [[ $CRYPTROOT_ENABLE == yes ]]; then
 			# map the LUKS container partition via its UUID to be the 'cryptroot' device
-			echo "$CRYPTROOT_MAPPER UUID=${root_part_uuid} none luks" >> $SDCARD/etc/crypttab
-			rootfs=$rootdevice # used in fstab
-		else
-			rootfs="UUID=$(blkid -s UUID -o value $rootdevice)"
+			physical_root_part_uuid="$(blkid -s UUID -o value $physical_rootdevice)"
+			echo "$CRYPTROOT_MAPPER UUID=${physical_root_part_uuid} none luks" >> $SDCARD/etc/crypttab
+			run_host_command_logged cat $SDCARD/etc/crypttab
 		fi
+		
+		rootfs="UUID=$(blkid -s UUID -o value $rootdevice)"
 		echo "$rootfs / ${mkfs[$ROOTFS_TYPE]} defaults,noatime${mountopts[$ROOTFS_TYPE]} 0 1" >> $SDCARD/etc/fstab
+		run_host_command_logged cat $SDCARD/etc/fstab
+
 	else
 		# update_initramfs will fail if /lib/modules/ doesn't exist
 		mount --bind --make-private $SDCARD $MOUNT/
@@ -369,7 +372,7 @@ function prepare_partitions() {
 	if [[ -f $SDCARD/boot/armbianEnv.txt ]]; then
 		display_alert "Found armbianEnv.txt" "${SDCARD}/boot/armbianEnv.txt" "debug"
 		if [[ $CRYPTROOT_ENABLE == yes ]]; then
-			echo "rootdev=$rootdevice cryptdevice=UUID=${root_part_uuid}:$CRYPTROOT_MAPPER" >> "${SDCARD}/boot/armbianEnv.txt"
+			echo "rootdev=$rootdevice cryptdevice=UUID=${physical_root_part_uuid}:$CRYPTROOT_MAPPER" >> "${SDCARD}/boot/armbianEnv.txt"
 		else
 			echo "rootdev=$rootfs" >> "${SDCARD}/boot/armbianEnv.txt"
 		fi
@@ -388,7 +391,7 @@ function prepare_partitions() {
 		display_alert "Found boot.ini" "${SDCARD}/boot/boot.ini" "debug"
 		sed -i -e "s/rootfstype \"ext4\"/rootfstype \"$ROOTFS_TYPE\"/" $SDCARD/boot/boot.ini
 		if [[ $CRYPTROOT_ENABLE == yes ]]; then
-			rootpart="UUID=${root_part_uuid}"
+			rootpart="UUID=${physical_root_part_uuid}"
 			sed -i 's/^setenv rootdev .*/setenv rootdev "\/dev\/mapper\/'$CRYPTROOT_MAPPER' cryptdevice='$rootpart':'$CRYPTROOT_MAPPER'"/' $SDCARD/boot/boot.ini
 		else
 			sed -i 's/^setenv rootdev .*/setenv rootdev "'$rootfs'"/' $SDCARD/boot/boot.ini

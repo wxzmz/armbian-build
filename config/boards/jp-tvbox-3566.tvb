@@ -1,18 +1,10 @@
 # Rockchip RK3566 quad core 8GB RAM SoC WIFI/BT eMMC USB2/3 SATA
 BOARD_NAME="jp-tvbox-3566"
 BOARDFAMILY="rk35xx"
-<<<<<<< HEAD
 BOARD_MAINTAINER=""
 BOOTCONFIG="jp-tvbox-3566_defconfig"
 BOOT_SOC="rk3566"
 KERNEL_TARGET="legacy,vendor,edge"
-=======
-BOARD_MAINTAINER="tdleiyao"
-#BOOTCONFIG="rock-3c-rk3566_defconfig"
-BOOTCONFIG="rk3568_defconfig"
-KERNEL_TARGET="current,edge"
-KERNEL_TEST_TARGET="current"
->>>>>>> upstream/main
 FULL_DESKTOP="yes"
 BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3566-jp-tvbox.dtb"
@@ -41,10 +33,10 @@ function post_family_config__jp-tvbox-3566_uboot() {
 function post_family_config__jp-tvbox_kernel() {
 	display_alert "$BOARD" "mainline BOOTPATCHDIR" "info"
 	if [[ ${BRANCH} = "legacy" ]]; then
-		KERNELPATCHDIR="rockchip-5.10-jp-tvbox"	
+		KERNELPATCHDIR="rockchip-5.10-jp-tvbox"
 	elif [[ ${BRANCH} = "vendor" ]]; then
 		KERNELPATCHDIR="rockchip-6.1-jp-tvbox"
-		#CRUSTCONFIG="rockchip-6.1.config"	
+		#CRUSTCONFIG="rockchip-6.1.config"
 	fi
 }
 
@@ -68,7 +60,7 @@ function custom_kernel_config__jp-tvbox_cpuinfo() {
 			#run_host_command_logged ./scripts/config --set-val CONFIG_ARCH_MMAP_RND_COMPAT_BITS 11
 			run_kernel_make olddefconfig
 		fi
-	fi	
+	fi
 }
 
 
