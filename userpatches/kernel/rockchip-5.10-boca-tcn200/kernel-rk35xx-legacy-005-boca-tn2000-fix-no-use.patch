@@ -1,0 +1,280 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Fri, 13 Dec 2024 10:15:39 +0800
+Subject: Patching kernel rk35xx files
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts | 154 +---------
+ 1 file changed, 3 insertions(+), 151 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+index b45b75e629ca..c920984666f7 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+@@ -65,10 +65,11 @@ dp0_sound: dp0-sound {
+ 		rockchip,cpu = <&spdif_tx2>;
+ 		rockchip,codec = <&dp0 1>;
+ 		rockchip,jack-det;
+ 	};
+ 
++/*
+ 	hdmi0_sound: hdmi0-sound {
+ 		status = "disabled";
+ 		compatible = "simple-audio-card";
+ 		simple-audio-card,format = "i2s";
+ 		simple-audio-card,mclk-fs = <128>;
+@@ -79,11 +80,11 @@ simple-audio-card,cpu {
+ 		};
+ 		simple-audio-card,codec {
+ 				sound-dai = <&hdmi0>;
+ 		};
+ 	};
+-
++*/
+ 
+ 	spdif_tx1_dc: spdif-tx1-dc {
+ 		status = "okay";
+ 		compatible = "linux,spdif-dit";
+ 		#sound-dai-cells = <0>;
+@@ -175,69 +176,10 @@ combophy-avdd1v8 {
+ 		regulator-min-microvolt = <1800000>;
+ 		regulator-max-microvolt = <1800000>;
+ 		vin-supply = <&avcc_1v8_s0>;
+ 	};
+ 
+-	es7202_sound_micarray: es7202-sound-micarray {
+-		status = "okay";
+-		compatible = "simple-audio-card";
+-		simple-audio-card,format = "i2s";
+-		simple-audio-card,name = "rockchip,sound-micarray";
+-		simple-audio-card,mclk-fs = <256>;
+-		simple-audio-card,dai-link@0 {
+-			format = "pdm";
+-			cpu {
+-				sound-dai = <&pdm0>;
+-			};
+-			codec {
+-				sound-dai = <&es7202>;
+-			};
+-		};
+-	};
+-
+-	es8388_sound: es8388-sound {
+-		status = "okay";
+-		compatible = "rockchip,multicodecs-card";
+-		rockchip,card-name = "rockchip-es8388";
+-		hp-det-gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_LOW>;
+-		//hw-ver =<0x1>;
+-		io-channels = <&saradc 3>;
+-		//io-channel-names = "hw-ver";
+-		io-channel-names = "adc-detect";
+-		keyup-threshold-microvolt = <1800000>;
+-		poll-interval = <100>;
+-		//linein-type = <1>;
+-		spk-con-gpio = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
+-		hp-con-gpio = <&gpio4 RK_PA4 GPIO_ACTIVE_HIGH>;
+-		rockchip,format = "i2s";
+-		rockchip,mclk-fs = <256>;
+-		rockchip,cpu = <&i2s0_8ch>;
+-		rockchip,codec = <&es8388>;
+-		rockchip,audio-routing =
+-			"Headphone", "LOUT1",
+-			"Headphone", "ROUT1",
+-			"Speaker", "LOUT2",
+-			"Speaker", "ROUT2",
+-			"Headphone", "Headphone Power",
+-			"Headphone", "Headphone Power",
+-			"Speaker", "Speaker Power",
+-			"Speaker", "Speaker Power",
+-			"LINPUT1", "Main Mic",
+-			"LINPUT2", "Main Mic",
+-			"RINPUT1", "Headset Mic",
+-			"RINPUT2", "Headset Mic";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&hp_det>;
+-
+-		play-pause-key {
+-			label = "playpause";
+-			linux,code = <164>;
+-			press-threshold-microvolt = <2000>;
+-		};
+-
+-	};
+-
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+ 		power_green: power-green {
+ 			linux,default-trigger = "timer";
+@@ -358,11 +300,10 @@ vcc5v0_host: vcc5v0-host {
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&vcc5v0_host_en>;
+ 	};
+ };
+ 
+-//add
+ &av1d {
+ 	status = "okay";
+ };
+ 
+ &av1d_mmu {
+@@ -451,14 +392,10 @@ &hdmi0 {
+ 
+ &hdmi0_in_vp0 {
+ 	status = "disabled";
+ };
+ 
+-&hdmi0_sound {
+-	status = "disabled";
+-};
+-
+ &hdptxphy0 {
+ 	status = "okay";
+ 	/* Single Vdiff Training Table for power reduction (optional) */
+ 	training-table = /bits/ 8 <
+ 		/* voltage swing 0, pre-emphasis 0->3 */
+@@ -476,18 +413,10 @@ &hdptxphy0 {
+ 		/* voltage swing 3, pre-emphasis 0 */
+ 		0x0d 0x00 0x00 0x00 0x00 0x00
+ 	>;
+ };
+ 
+-&hdptxphy_hdmi0 {
+-	status = "disabled";
+-};
+-
+-&hdptxphy_hdmi_clk0 {
+-       status = "disabled";
+-};
+-
+ &i2c0 {
+ 	status = "okay";
+ 	pinctrl-0 = <&i2c0m2_xfer>;
+ 
+ 	vdd_cpu_big0_s0: vdd_cpu_big0_mem_s0: rk8602@42 {
+@@ -546,86 +475,20 @@ regulator-state-mem {
+ 	};
+ 
+ };
+ 
+ &i2c3 {
+-	status = "okay";
+-	es8388: es8388@11 {
+-		status = "okay";
+-		#sound-dai-cells = <0>;
+-		compatible = "everest,es8388", "everest,es8323";
+-		reg = <0x11>;
+-		//clocks = <&mclkout_i2s0>;
+-		clocks = <&cru I2S0_8CH_MCLKOUT>;
+-		clock-names = "mclk";
+-		//assigned-clocks = <&mclkout_i2s0>;
+-		assigned-clocks = <&cru I2S0_8CH_MCLKOUT>;
+-		assigned-clock-rates = <12288000>;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&i2s0_mclk>;
+-	};
+-
+-	es7202: es7202@32 {
+-		status = "disabled";
+-		#sound-dai-cells = <0>;
+-		compatible = "ES7202_PDM_ADC_1";
+-		power-supply = <&vcc_1v8_s0>;	/* only 1v8 or 3v3, default is 3v3 */
+-		reg = <0x32>;
+-	};
+-
++	status = "disabled";
+ };
+ 
+ &i2c4 {
+ 	status = "disabled";
+ };
+ 
+ &i2c5 {
+ 	status = "okay";
+ 
+-	ls_stk3332: light@47 {
+-		compatible = "ls_stk3332";
+-		status = "disabled";
+-		reg = <0x47>;
+-		type = <SENSOR_TYPE_LIGHT>;
+-		irq_enable = <0>;
+-		als_threshold_high = <100>;
+-		als_threshold_low = <10>;
+-		als_ctrl_gain = <2>; /* 0:x1 1:x4 2:x16 3:x64 */
+-		poll_delay_ms = <100>;
+-	};
+-
+-	ps_stk3332: proximity@47 {
+-		compatible = "ps_stk3332";
+-		status = "disabled";
+-		reg = <0x47>;
+-		type = <SENSOR_TYPE_PROXIMITY>;
+-		ps_threshold_high = <0x200>;
+-		ps_threshold_low = <0x100>;
+-		ps_ctrl_gain = <3>; /* 0:x1 1:x2 2:x5 3:x8 */
+-		ps_led_current = <4>; /* 0:3.125mA 1:6.25mA 2:12.5mA 3:25mA 4:50mA 5:100mA*/
+-		poll_delay_ms = <100>;
+-	};
+-
+-	mpu6500_acc: mpu_acc@68 {
+-		compatible = "mpu6500_acc";
+-		reg = <0x68>;
+-		irq-gpio = <&gpio3 RK_PB4 IRQ_TYPE_EDGE_RISING>;
+-		irq_enable = <0>;
+-		poll_delay_ms = <30>;
+-		type = <SENSOR_TYPE_ACCEL>;
+-		layout = <5>;
+-	};
+-
+-	mpu6500_gyro: mpu_gyro@68 {
+-		compatible = "mpu6500_gyro";
+-		reg = <0x68>;
+-		//irq_enable = <0>;
+-		poll_delay_ms = <30>;
+-		type = <SENSOR_TYPE_GYROSCOPE>;
+-		layout = <5>;
+-	};
+-
+ };
+ 
+ &i2c6 {
+ 	status = "okay";
+ 	//clock-frequency = <400000>; // For others Display Port Screen
+@@ -719,15 +582,10 @@ &i2s0_8ch {
+ 	pinctrl-0 = <&i2s0_lrck
+ 				&i2s0_sclk
+ 				&i2s0_sdi0
+ 				&i2s0_sdo0>;
+ };
+-/*
+-&i2s5_8ch {
+-	status = "okay";
+-};
+-*/
+ 
+ &pdm0 {
+ 	status = "okay";
+ };
+ 
+@@ -900,16 +758,10 @@ &rockchip_suspend {
+ */
+ 	rockchip,wakeup-config = <0x100>;
+ 
+ };
+ 
+-/*
+-&route_hdmi0{
+-	status = "okay";
+-};
+-*/
+-
+ &route_edp0{
+ 	status = "okay";
+ };
+ 
+ &saradc {
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+

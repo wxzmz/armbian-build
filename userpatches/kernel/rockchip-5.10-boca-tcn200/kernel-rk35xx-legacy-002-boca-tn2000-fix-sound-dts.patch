@@ -1,0 +1,142 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Thu, 12 Dec 2024 16:54:18 +0800
+Subject: Patching kernel rk35xx files
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts | 30 ++++------
+ 1 file changed, 10 insertions(+), 20 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+index 61f53b53fc11..dfcde1851d67 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+@@ -58,12 +58,10 @@ back-key {
+ 	};
+ 
+ 	dp0_sound: dp0-sound {
+ 		status = "okay";
+ 		compatible = "rockchip,hdmi";
+-		//simple-audio-card,format = "i2s";
+-		//rockchip,card-name= "rockchip-dp0";
+ 		rockchip,card-name= "rockchip,dp0";
+ 		rockchip,mclk-fs = <512>;
+ 		rockchip,cpu = <&spdif_tx2>;
+ 		rockchip,codec = <&dp0 1>;
+ 		rockchip,jack-det;
+@@ -92,11 +90,11 @@ spdif_tx1_dc: spdif-tx1-dc {
+ 	};
+ 
+ 	spdif_tx1_sound: spdif-tx1-sound {
+ 		status = "okay";
+ 		compatible = "simple-audio-card";
+-		//simple-audio-card,mclk-fs = <128>;
++		simple-audio-card,mclk-fs = <128>;
+ 		simple-audio-card,name = "rockchip,spdif-tx1";
+ 		simple-audio-card,cpu {
+ 			sound-dai = <&spdif_tx1>;
+ 		};
+ 		simple-audio-card,codec {
+@@ -326,11 +324,11 @@ vbus5v0_typec: vbus5v0-typec {
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+ 		enable-active-high;
+ 		//regulator-boot-on;
+ 		//regulator-always-on;
+-		gpio = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>; // bsp
++		gpio = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
+ 		vin-supply = <&vcc5v0_usb>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&typec5v_pwren>;
+ 	};
+ 
+@@ -406,12 +404,16 @@ del*/
+ 
+ &dp0 {
+ 	status = "okay";
+ };
+ 
++//usr vp2
++&dp0_in_vp0 {
++	status = "okay";
++};
++
+ &dp0_in_vp2 {
+-	//status = "okay";
+ 	status = "disabled";
+ };
+ 
+ &gmac1 {
+ 	status = "okay";
+@@ -1074,51 +1076,39 @@ &vdpu_mmu {
+ 	status = "okay";
+ };
+ 
+ &vop {
+ 	status = "okay";
+-//test add vp2
+-	assigned-clocks = <&cru ACLK_VOP>;
+-	assigned-clock-rates = <800000000>;
+ };
+ 
+ &vop_mmu {
+ 	status = "okay";
+ };
+ 
+ /* vp0 & vp1 splice for 8K output */
+ &vp0 {
+ 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0)>;
+ 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART0>;
+-	assigned-clocks = <&cru DCLK_VOP0_SRC>;
+-	//assigned-clock-rates = <800000000>;
+-	assigned-clock-parents = <&cru PLL_V0PLL>;
++	assigned-clocks = <&cru ACLK_VOP>;
++	assigned-clock-rates = <800000000>;
+ };
+ 
+ &vp1 {
+ 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1)>;
+ 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART1>;
+ };
+ 
+ &vp2 {
+-//del assigned
+-	/delete-property/ assigned-clocks;
+-	/delete-property/ assigned-clock-parents;
+-
+ 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER2 | 1 << ROCKCHIP_VOP2_ESMART2)>;
+ 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART2>;
+ };
+ 
+ &vp3 {
+ 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER3 | 1 << ROCKCHIP_VOP2_ESMART3)>;
+ 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART3>;
+ };
+ 
+-&dp0_in_vp0 {
+-	status = "okay";
+-};
+-
+ 
+ &sata0 {
+ 	status = "okay";
+     //pinctrl-names = "default";
+ 	target-supply = <&vcc3v3_sata>;
+@@ -1127,11 +1117,11 @@ &sata0 {
+ &sata2 {
+ 	status = "okay";
+ 	target-supply = <&vcc3v3_sata>;
+ };
+ 
+-//tcn200��������dfi��dmc
++/* tcn200 org cloes dfi dmc */
+ &dfi {
+ 	status = "okay";
+ };
+ 
+ &dmc {
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+

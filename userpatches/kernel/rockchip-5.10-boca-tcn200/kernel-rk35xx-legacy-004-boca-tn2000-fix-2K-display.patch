@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Fri, 13 Dec 2024 01:34:15 +0800
+Subject: Patching kernel rk35xx files
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+index 7ad2bb34b489..b45b75e629ca 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+@@ -405,15 +405,15 @@ &dp0 {
+ 	status = "okay";
+ };
+ 
+ //usr vp2
+ &dp0_in_vp0 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &dp0_in_vp2 {
+-	status = "disabled";
++	status = "okay";
+ };
+ 
+ &gmac1 {
+ 	status = "okay";
+ 	/* Use rgmii-rxid mode to disable rx delay inside Soc */
+@@ -1080,12 +1080,12 @@ &vop_mmu {
+ 
+ /* vp0 & vp1 splice for 8K output */
+ &vp0 {
+ 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0)>;
+ 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART0>;
+-	assigned-clocks = <&cru ACLK_VOP>;
+-	assigned-clock-rates = <800000000>;
++	//assigned-clocks = <&cru ACLK_VOP>;
++	//assigned-clock-rates = <800000000>;
+ };
+ 
+ &vp1 {
+ 	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1)>;
+ 	rockchip,primary-plane = <ROCKCHIP_VOP2_ESMART1>;
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+

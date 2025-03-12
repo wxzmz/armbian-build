@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: John Doe <john.doe@somewhere.on.planet>
+Date: Thu, 12 Dec 2024 17:55:27 +0800
+Subject: Patching kernel rk35xx files
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+
+Signed-off-by: John Doe <john.doe@somewhere.on.planet>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+index dfcde1851d67..7ad2bb34b489 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-boca-tcn200.dts
+@@ -315,11 +315,10 @@ hall_sensor: hall-mh248 {
+ 		irq-gpio = <&gpio0 RK_PD4 IRQ_TYPE_EDGE_BOTH>;
+ 		hall-active = <1>;
+ 		status = "okay";
+ 	};
+ 
+-	//vbus5v0_typec: vbus-typec-regulator {
+ 	vbus5v0_typec: vbus5v0-typec {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vbus5v0_typec";
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+@@ -597,14 +596,10 @@ ls_stk3332: light@47 {
+ 	ps_stk3332: proximity@47 {
+ 		compatible = "ps_stk3332";
+ 		status = "disabled";
+ 		reg = <0x47>;
+ 		type = <SENSOR_TYPE_PROXIMITY>;
+-		//pinctrl-names = "default";
+-		//pinctrl-0 = <&gpio3_c6>;
+-		//irq-gpio = <&gpio3 RK_PC6 IRQ_TYPE_LEVEL_LOW>;
+-		//irq_enable = <1>;
+ 		ps_threshold_high = <0x200>;
+ 		ps_threshold_low = <0x100>;
+ 		ps_ctrl_gain = <3>; /* 0:x1 1:x2 2:x5 3:x8 */
+ 		ps_led_current = <4>; /* 0:3.125mA 1:6.25mA 2:12.5mA 3:25mA 4:50mA 5:100mA*/
+ 		poll_delay_ms = <100>;
+@@ -662,12 +657,11 @@ usbc0_role_sw: endpoint@0 {
+ 		usb_con: connector {
+ 			compatible = "usb-c-connector";
+ 			label = "USB-C";
+ 			data-role = "dual";
+ 			power-role = "dual";
+-			//try-power-role = "sink";
+-			try-power-role = "source";
++			try-power-role = "sink";
+ 			op-sink-microwatt = <1000000>;
+ 			sink-pdos =
+ 				<PDO_FIXED(5000, 1000, PDO_FIXED_USB_COMM)>;
+ 			source-pdos =
+ 				<PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
+@@ -703,11 +697,11 @@ dp_altmode_mux: endpoint {
+ 			};
+ 		};
+ 	};
+ 
+ 	hym8563: hym8563@51 {
+-		//status = "okay";
++		status = "okay";
+ 		compatible = "haoyu,hym8563";
+ 		reg = <0x51>;
+ 		#clock-cells = <0>;
+ 		clock-frequency = <32768>;
+ 		clock-output-names = "hym8563";
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+
