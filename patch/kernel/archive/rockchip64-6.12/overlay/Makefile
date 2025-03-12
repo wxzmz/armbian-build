@@ -20,6 +20,9 @@ dtbo-$(CONFIG_ARCH_ROCKCHIP) += \
 	rockchip-rk3318-box-wlan-ext.dtbo \
 	rockchip-rk3328-i2c0.dtbo \
 	rockchip-rk3328-i2s1-pcm5102.dtbo \
+	rockchip-rk3328-mksklipad50-enable-rtc-end1.dtbo \
+	rockchip-rk3328-mksklipad50-enable-v4l2.dtbo \
+	rockchip-rk3328-mkspi-disable-lcd-spi.dtbo \
 	rockchip-rk3328-opp-1.4ghz.dtbo \
 	rockchip-rk3328-opp-1.5ghz.dtbo \
 	rockchip-rk3328-spi-spidev.dtbo \
@@ -45,7 +48,49 @@ dtbo-$(CONFIG_ARCH_ROCKCHIP) += \
 	rockchip-rk3568-hk-uart0.dtbo \
 	rockchip-rk3568-hk-uart0-rts_cts.dtbo \
 	rockchip-rk3568-hk-uart1.dtbo \
-	rockchip-rk3568-rock-3a-disable-uart2.dtbo
+	rockchip-rk3568-rock-3a-disable-uart2.dtbo \
+	rockchip-rk3588-fanctrl.dtbo \
+	rockchip-rk3588-sata1.dtbo \
+	rockchip-rk3588-sata2.dtbo \
+	rockchip-rk3588-hdmirx.dtbo \
+	rockchip-rk3588-i2c8-m2.dtbo \
+	rockchip-rk3588-pwm0-m0.dtbo \
+	rockchip-rk3588-pwm0-m1.dtbo \
+	rockchip-rk3588-pwm0-m2.dtbo \
+	rockchip-rk3588-pwm1-m0.dtbo \
+	rockchip-rk3588-pwm1-m1.dtbo \
+	rockchip-rk3588-pwm1-m2.dtbo \
+	rockchip-rk3588-pwm2-m1.dtbo \
+	rockchip-rk3588-pwm3-m0.dtbo \
+	rockchip-rk3588-pwm3-m1.dtbo \
+	rockchip-rk3588-pwm3-m2.dtbo \
+	rockchip-rk3588-pwm3-m3.dtbo \
+	rockchip-rk3588-pwm5-m2.dtbo \
+	rockchip-rk3588-pwm6-m0.dtbo \
+	rockchip-rk3588-pwm6-m2.dtbo \
+	rockchip-rk3588-pwm7-m0.dtbo \
+	rockchip-rk3588-pwm7-m3.dtbo \
+	rockchip-rk3588-pwm8-m0.dtbo \
+	rockchip-rk3588-pwm10-m0.dtbo \
+	rockchip-rk3588-pwm11-m0.dtbo \
+	rockchip-rk3588-pwm11-m1.dtbo \
+	rockchip-rk3588-pwm12-m0.dtbo \
+	rockchip-rk3588-pwm13-m0.dtbo \
+	rockchip-rk3588-pwm13-m2.dtbo \
+	rockchip-rk3588-pwm14-m0.dtbo \
+	rockchip-rk3588-pwm14-m1.dtbo \
+	rockchip-rk3588-pwm14-m2.dtbo \
+	rockchip-rk3588-pwm15-m0.dtbo \
+	rockchip-rk3588-pwm15-m1.dtbo \
+	rockchip-rk3588-pwm15-m2.dtbo \
+	rockchip-rk3588-pwm15-m3.dtbo \
+	rockchip-rk3588-uart1-m1.dtbo \
+	rockchip-rk3588-uart3-m1.dtbo \
+	rockchip-rk3588-uart4-m2.dtbo \
+	rockchip-rk3588-uart6-m1.dtbo \
+	rockchip-rk3588-uart7-m2.dtbo \
+	rockchip-rk3588-uart8-m1.dtbo \
+	rockchip-rk3588-rkvenc-overlay.dtbo
 
 scr-$(CONFIG_ARCH_ROCKCHIP) += \
        rockchip-fixup.scr

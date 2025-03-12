@@ -21,7 +21,7 @@ function extension_prepare_config__3d() {
 	# Define image suffix
 	if [[ "${LINUXFAMILY}" =~ ^(rockchip-rk3588|rk35xx)$ && "$BRANCH" =~ ^(legacy)$ && "${RELEASE}" =~ ^(jammy|noble)$ ]]; then
 		EXTRA_IMAGE_SUFFIXES+=("-panfork")
-	elif [[ "${DISTRIBUTION}" == "Ubuntu" ]]; then
+	elif [[ "${DISTRIBUTION}" == "Ubuntu" && "${RELEASE}" =~ ^(jammy)$ ]]; then
 		EXTRA_IMAGE_SUFFIXES+=("-kisak")
 	elif [[ "${DISTRIBUTION}" == "Debian" && "${RELEASE}" == "bookworm" ]]; then
 		EXTRA_IMAGE_SUFFIXES+=("-backported-mesa")
@@ -76,7 +76,7 @@ function post_install_kernel_debs__3d() {
 
 		sed -i "s/noble/jammy/g" "${SDCARD}"/etc/apt/sources.list.d/liujianfeng1994-ubuntu-panfork-mesa-"${RELEASE}".*
 
-	elif [[ "${DISTRIBUTION}" == "Ubuntu" ]]; then
+	elif [[ "${DISTRIBUTION}" == "Ubuntu" && "${RELEASE}" =~ ^(jammy)$ ]]; then
 
 		display_alert "Adding kisak PPAs" "${EXTENSION}" "info"
 		do_with_retries 3 chroot_sdcard add-apt-repository ppa:kisak/kisak-mesa --yes --no-update
@@ -90,34 +90,6 @@ function post_install_kernel_debs__3d() {
 
 		# Add chromium if building a desktop
 		if [[ "${BUILD_DESKTOP}" == "yes" ]]; then
-			if [[ "${ARCH}" == "arm64" ]]; then
-
-				display_alert "Adding Amazingfate Chromium PPAs" "${EXTENSION}" "info"
-				do_with_retries 3 chroot_sdcard add-apt-repository ppa:liujianfeng1994/chromium --yes --no-update
-				sed -i "s/oracular/noble/g" "${SDCARD}"/etc/apt/sources.list.d/liujianfeng1994-ubuntu-chromium-"${RELEASE}".*
-
-				display_alert "Pinning amazingfated's Chromium PPAs" "${EXTENSION}" "info"
-				cat <<- EOF > "${SDCARD}"/etc/apt/preferences.d/liujianfeng1994-chromium-pin
-					Package: chromium
-					Pin: release o=LP-PPA-liujianfeng1994-chromium
-					Pin-Priority: 1001
-				EOF
-
-			else
-
-				display_alert "Adding Xtradebs Apps PPAs" "${EXTENSION}" "info"
-				do_with_retries 3 chroot_sdcard add-apt-repository ppa:xtradeb/apps --yes --no-update
-				sed -i "s/oracular/noble/g" "${SDCARD}"/etc/apt/sources.list.d/xtradeb-ubuntu-apps-"${RELEASE}".*
-
-				display_alert "Pinning Xtradebs PPAs" "${EXTENSION}" "info"
-				cat <<- EOF > "${SDCARD}"/etc/apt/preferences.d/xtradebs-apps-pin
-					Package: chromium
-					Pin: release o=LP-PPA-xtradebs-apps
-					Pin-Priority: 1001
-				EOF
-
-			fi
-
 			pkgs+=("chromium")
 		fi
 	fi
@@ -168,7 +140,7 @@ function post_install_kernel_debs__3d() {
 	fi
 
 	display_alert "Upgrading all packages, including hopefully all mesa packages" "${EXTENSION}" "info"
-	do_with_retries 3 chroot_sdcard_apt_get -o Dpkg::Options::="--force-confold" dist-upgrade
+	do_with_retries 3 chroot_sdcard_apt_get -o Dpkg::Options::="--force-confold" --allow-downgrades dist-upgrade
 
 	# KDE neon downgrade hack undo
 	do_with_retries 3 chroot_sdcard apt-mark unhold base-files

@@ -69,7 +69,7 @@ function install_distribution_specific() {
 # create_sources_list_and_deploy_repo_key <when> <release> <basedir>
 #
 # <when>: rootfs|image
-# <release>: bullseye|bookworm|sid|focal|jammy|noble|oracular
+# <release>: bullseye|bookworm|sid|focal|jammy|noble|oracular|plucky
 # <basedir>: path to root directory
 #
 function create_sources_list_and_deploy_repo_key() {
@@ -139,7 +139,7 @@ function create_sources_list_and_deploy_repo_key() {
 			fi
 			;;
 
-		focal | jammy | noble | oracular)
+		focal | jammy | noble | oracular | plucky)
 			cat <<- EOF > "${basedir}"/etc/apt/sources.list
 				deb http://${UBUNTU_MIRROR} $release main restricted universe multiverse
 				#deb-src http://${UBUNTU_MIRROR} $release main restricted universe multiverse
@@ -156,20 +156,18 @@ function create_sources_list_and_deploy_repo_key() {
 			;;
 	esac
 
+	# add armbian key
 	display_alert "Adding Armbian repository and authentication key" "${when} :: /etc/apt/sources.list.d/armbian.list" "info"
+	mkdir -p "${basedir}"/usr/share/keyrings
+	# change to binary form
+	APT_SIGNING_KEY_FILE="/usr/share/keyrings/armbian.gpg"
+	gpg --dearmor < "${SRC}"/config/armbian.key > "${basedir}${APT_SIGNING_KEY_FILE}"
+	SIGNED_BY="[signed-by=${APT_SIGNING_KEY_FILE}] "
 
-	# apt-key add is getting deprecated
-	APT_VERSION=$(chroot "${basedir}" /bin/bash -c "apt --version | cut -d\" \" -f2")
-	if linux-version compare "${APT_VERSION}" ge 2.4.1; then
-		# add armbian key
-		mkdir -p "${basedir}"/usr/share/keyrings
-		# change to binary form
-		gpg --dearmor < "${SRC}"/config/armbian.key > "${basedir}"/usr/share/keyrings/armbian.gpg
-		SIGNED_BY="[signed-by=/usr/share/keyrings/armbian.gpg] "
-	else
-		# use old method for compatibility reasons # @TODO: rpardini: not gonna fix this?
+	# lets keep old way for old distributions
+	if [[ "${RELEASE}" =~ (focal|bullseye) ]]; then
 		cp "${SRC}"/config/armbian.key "${basedir}"
-		chroot "${basedir}" /bin/bash -c "cat armbian.key | apt-key add -"
+		chroot "${basedir}" /bin/bash -c "cat armbian.key | apt-key add - > /dev/null 2>&1"
 	fi
 
 	declare -a components=()
